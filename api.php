@@ -19,6 +19,23 @@ class Api extends CI_Controller {
 
 		$this->db->insert('whispers', $data);
 	}
+
+	public function add_json()
+	{
+		$json = json_decode(trim(file_get_contents('php://input')));
+		$data = array(
+			'latitude'	=>	$json->latitude,
+			'longitude'	=>	$json->longitude,
+			'text'		=>	$json->text,
+			'pubTime'	=>	time() + $json->pubTime
+		);
+
+		$this->db->insert('whispers', $data);
+
+		// TODO: would be nice if this function returned
+		// the ID of the new message.
+		echo "123";
+	}
 	
 	public function get_servertime()
 	{
