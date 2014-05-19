@@ -18,6 +18,8 @@ class Api extends CI_Controller {
 		);
 
 		$this->db->insert('whispers', $data);
+		// Return the ID of the newly inserted message
+		echo $this->db->insert_id();
 	}
 
 	public function add_json()
