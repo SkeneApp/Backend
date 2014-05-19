@@ -92,16 +92,24 @@ class Api extends CI_Controller {
 		}
 		
 		if ($this->input->get('newCode')){
-        /* Binay 
-        Just trying new algorithm that takes radius and the center's lat and long as a parameter instead of min and max values
-        TODO: everything, just made a new section
-        */
-        $R = 6371;  // earth's mean radius, km
-        $query = $this->db->order_by("id", "desc")->get_where('whispers', array('latitude >' => $min_lat, 'latitude <' => $max_lat, 'longitude >' => $min_long, 'longitude <' => $max_long, 'pubTime >' => $timestamp, 'pubTime <' => time()), $count);
-        }
-        else{
-        $query = $this->db->order_by("id", "desc")->get_where('whispers', array('latitude >' => $min_lat, 'latitude <' => $max_lat, 'longitude >' => $min_long, 'longitude <' => $max_long, 'pubTime >' => $timestamp, 'pubTime <' => time()), $count);
-        }
+            		/* 
+            		?newCode=1 is required in URL, implemented so that old code and programs will not break for now, later it can be removed
+            		radius in kilometers, lat, long required parameters for this section
+            		*/
+            		$R = 6371;  // earth's mean radius, km
+            
+            		// first-cut bounding box (in degrees)
+            		$max_lat = $lat + rad2deg($radius/$R);
+            		$min_lat = $lat - rad2deg($radius/$R);
+
+            		// compensate for degrees longitude getting smaller with increasing latitude
+            		$max_long = $long + rad2deg($radius/$R/cos(deg2rad($lat)));
+            		$min_long = $long - rad2deg($radius/$R/cos(deg2rad($lat)));
+            		$query = $this->db->order_by("id", "desc")->get_where('whispers', array('latitude >=' => $min_lat, 'latitude <=' => $max_lat, 'longitude >=' => $min_long, 'longitude <=' => $max_long, 'pubTime >=' => $timestamp, 'pubTime <=' => time()), $count);
+        	}
+        	else{
+            		$query = $this->db->order_by("id", "desc")->get_where('whispers', array('latitude >=' => $min_lat, 'latitude <=' => $max_lat, 'longitude >=' => $min_long, 'longitude <=' => $max_long, 'pubTime >=' => $timestamp, 'pubTime <=' => time()), $count);
+        	}
 
 		$result = $query->result();
 		$code = '';
