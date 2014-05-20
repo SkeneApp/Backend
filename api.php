@@ -18,6 +18,8 @@ class Api extends CI_Controller {
 		);
 
 		$this->db->insert('whispers', $data);
+		// Return the ID of the newly inserted message
+		echo $this->db->insert_id();
 	}
 
 	public function add_json()
@@ -31,10 +33,8 @@ class Api extends CI_Controller {
 		);
 
 		$this->db->insert('whispers', $data);
-
-		// TODO: would be nice if this function returned
-		// the ID of the new message.
-		echo "123";
+		// Return the ID of the newly inserted message
+		echo $this->db->insert_id();
 	}
 	
 	public function get_servertime()
