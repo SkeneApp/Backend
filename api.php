@@ -4,7 +4,8 @@ class Api extends CI_Controller {
 
 	public function index()
 	{
-		die('POIS!');
+		// Silence is golden.
+		exit;
 	}
 	
 	public function add()
