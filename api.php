@@ -2,6 +2,24 @@
 
 class Api extends CI_Controller {
 
+	function __construct() {
+        	//TODO: all validations should go here, numbers texts everything should be validated
+            	parent::__construct();
+        	switch ($this->router->fetch_method()){
+        		case "add":
+				$json = json_decode(trim(file_get_contents('php://input')));
+				if($json->latitude == "" || $json->longitude == "" || $json->text == "" || $json->pubDelay == "" || $json->parent_id == ""){
+					echo json_encode(array("error"=>"Cannot add new message"));
+					exit;
+				}
+        			break;
+        		case "get":
+        			break;
+        		case "get_map_data":
+        			break;
+        	}
+	}
+	
 	public function index()
 	{
 		// Silence is golden.
@@ -48,24 +66,16 @@ class Api extends CI_Controller {
 		// parent_id: (default 0): only get messages with this parent_id
 
 		
-		if ($this->input->get('timestamp')) {
-			$timestamp = $this->input->get('timestamp');
-		} else {
-			$timestamp = 0;
-		}
-		if ($this->input->get('count')) {
-			$count = $this->input->get('count');
-		} else {
-			$count = 50;
-		}
-		if ($this->input->get('parent_id')) {
-			$parent_id = $this->input->get('parent_id');
-		} else {
-			$parent_id = 0;
-			$radius = $this->input->get('radius') / 1000;
+		$timestamp = ($this->input->get('timestamp')) ? $this->input->get('timestamp') : 0;
+		$count = ($this->input->get('count')) ? $this->input->get('count') : 50;
+		$parent_id = ($this->input->get('parent_id')) ? $this->input->get('parent_id') : 0;
+
+		//TODO: we need radius, latitude and longitude on every request, dont we? we probably have to have function that stops the request and returns an json encoded error message (for now i made simple else)
+		if($this->input->get('radius') && $this->input->get('lat') && $this->input->get('long')){
+			$radius = $this->input->get('radius') / 1000; //to km
 			$lat = $this->input->get('lat');
 			$long = $this->input->get('long');
-
+	
 			// Get min/max latitude and longitue to select messages from the database
 	        	$R = 6371;  // earth's mean radius, km
 	        	// First-cut bounding box (in degrees)
@@ -74,19 +84,20 @@ class Api extends CI_Controller {
 	        	// Compensate for degrees longitude getting smaller with increasing latitude
 	        	$max_long = $long + rad2deg($radius/$R/cos(deg2rad($lat)));
 	        	$min_long = $long - rad2deg($radius/$R/cos(deg2rad($lat)));
+		}else{
+			$max_lat = 90;
+			$min_lat = -90;
+			$max_long = 90;
+			$max_long = -90;
 		}
 		
 		$current_time = $this->fixed_server_time();
 
         	// Compose SQL query
-        	if ($parent_id == 0) {
-        		$query = $this->db->order_by("id", "desc")->get_where('skene_messages', array('parent_id = ' => 0, 'latitude >=' => $min_lat, 'latitude <=' => $max_lat, 'longitude >=' => $min_long, 'longitude <=' => $max_long, 'pubTime >=' => $timestamp, 'pubTime <=' => $current_time), $count);
-        	} else {
-        		$query = $this->db->order_by("id", "desc")->get_where('skene_messages', array('parent_id = ' => $parent_id, 'pubTime >=' => $timestamp, 'pubTime <=' => $current_time), $count);
-        	}
-        
-        	// TODO: Filter out messages that are outside of defined radius
-	
+        	// removed two conditions, as we already have $parent_id either 0 or input data from above
+		$query = $this->db->order_by("id", "desc")->get_where('skene_messages', array('parent_id = ' => $parent_id, 'latitude >=' => $min_lat, 'latitude <=' => $max_lat, 'longitude >=' => $min_long, 'longitude <=' => $max_long, 'pubTime >=' => $timestamp, 'pubTime <=' => $current_time), $count);
+
+
         	// Run database query
 		$result = $query->result();
 
@@ -114,17 +125,9 @@ class Api extends CI_Controller {
 		$max_long = $this->input->get('max_long');
 
 		// Get optional parameters
-		if ($this->input->get('count')) {
-			$count = $this->input->get('count');
-		} else {
-			$count = 50;
-		}
-		if ($this->input->get('timestamp')) {
-			$timestamp = $this->input->get('timestamp');
-		} else {
-			$timestamp = 0;
-		}
-
+		$timestamp = ($this->input->get('timestamp')) ? $this->input->get('timestamp') : 0;
+		$count = ($this->input->get('count')) ? $this->input->get('count') : 50;
+		
 		$current_time = $this->fixed_server_time();
 
 		// Compose SQL query
