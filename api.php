@@ -70,7 +70,6 @@ class Api extends CI_Controller {
 		$count = ($this->input->get('count')) ? $this->input->get('count') : 50;
 		$parent_id = ($this->input->get('parent_id')) ? $this->input->get('parent_id') : 0;
 
-		//TODO: we need radius, latitude and longitude on every request, dont we? we probably have to have function that stops the request and returns an json encoded error message (for now i made simple else)
 		if($this->input->get('radius') && $this->input->get('lat') && $this->input->get('long')){
 			$radius = $this->input->get('radius') / 1000; //to km
 			$lat = $this->input->get('lat');
@@ -85,6 +84,7 @@ class Api extends CI_Controller {
 	        	$max_long = $long + rad2deg($radius/$R/cos(deg2rad($lat)));
 	        	$min_long = $long - rad2deg($radius/$R/cos(deg2rad($lat)));
 		}else{
+			//everything
 			$max_lat = 90;
 			$min_lat = -90;
 			$max_long = 90;
