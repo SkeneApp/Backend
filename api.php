@@ -69,8 +69,7 @@ class Api extends CI_Controller {
 		$timestamp = ($this->input->get('timestamp')) ? $this->input->get('timestamp') : 0;
 		$count = ($this->input->get('count')) ? $this->input->get('count') : 50;
 		$parent_id = ($this->input->get('parent_id')) ? $this->input->get('parent_id') : 0;
-
-		//TODO: we need radius, latitude and longitude on every request, dont we? we probably have to have function that stops the request and returns an json encoded error message (for now i made simple else)
+		$have_specifics = false;
 		if($this->input->get('radius') && $this->input->get('lat') && $this->input->get('long')){
 			$radius = $this->input->get('radius') / 1000; //to km
 			$lat = $this->input->get('lat');
@@ -84,19 +83,18 @@ class Api extends CI_Controller {
 	        	// Compensate for degrees longitude getting smaller with increasing latitude
 	        	$max_long = $long + rad2deg($radius/$R/cos(deg2rad($lat)));
 	        	$min_long = $long - rad2deg($radius/$R/cos(deg2rad($lat)));
-		}else{
-			$max_lat = 90;
-			$min_lat = -90;
-			$max_long = 90;
-			$max_long = -90;
+	        	$have_specifics = true;
 		}
-		
 		$current_time = $this->fixed_server_time();
 
         	// Compose SQL query
-        	// removed two conditions, as we already have $parent_id either 0 or input data from above
-		$query = $this->db->order_by("id", "desc")->get_where('skene_messages', array('parent_id = ' => $parent_id, 'latitude >=' => $min_lat, 'latitude <=' => $max_lat, 'longitude >=' => $min_long, 'longitude <=' => $max_long, 'pubTime >=' => $timestamp, 'pubTime <=' => $current_time), $count);
-
+		if ($parent_id == 0 && $have_specifics) {
+			$query = $this->db->order_by("id", "desc")->get_where('skene_messages', array('parent_id = ' => 0, 'latitude >=' => $min_lat, 'latitude <=' => $max_lat, 'longitude >=' => $min_long, 'longitude <=' => $max_long, 'pubTime >=' => $timestamp, 'pubTime <=' => $current_time), $count);
+		}elseif($parent_id == 0){
+			$query = $this->db->order_by("id", "desc")->get_where('skene_messages', array('parent_id = ' => 0, 'pubTime >=' => $timestamp, 'pubTime <=' => $current_time), $count);
+		}else{
+			$query = $this->db->order_by("id", "desc")->get_where('skene_messages', array('parent_id = ' => $parent_id, 'pubTime >=' => $timestamp, 'pubTime <=' => $current_time), $count);
+		}
 
         	// Run database query
 		$result = $query->result();
