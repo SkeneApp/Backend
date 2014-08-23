@@ -31,8 +31,12 @@ class Api extends CI_Controller {
     exit;
   }
 
-  public function server_time() {
-    echo time();
+  private function server_time() {
+    return time();
+  }
+
+  public function get_server_time() {
+    echo $this->server_time();
   }
 
   public function add() {
