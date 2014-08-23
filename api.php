@@ -31,19 +31,12 @@ class Api extends CI_Controller {
     exit;
   }
 
-  private function fixed_server_time() {
-    // TODO: Ruben needs to fix the clock of the server, it's off by 14 min and 56 from UTC
-    $server_time_utc_offset = (14 * 60 + 56);
-    $fixed_time = (time() - $server_time_utc_offset);
-    return $fixed_time;
-  }
-
   public function server_time() {
-    echo $this->fixed_server_time();
+    echo time();
   }
 
   public function add() {
-    $current_time = $this->fixed_server_time();
+    $current_time = $this->server_time();
     $json = json_decode(trim(file_get_contents('php://input')));
     $data = array(
       'latitude'  => $json->latitude,
@@ -88,7 +81,7 @@ class Api extends CI_Controller {
       $have_specifics = true;
     }
 
-    $current_time = $this->fixed_server_time();
+    $current_time = $this->server_time();
 
     // Compose SQL query
     if ($parent_id == 0 && $have_specifics) {
@@ -147,7 +140,7 @@ class Api extends CI_Controller {
     $timestamp = ($this->input->get('timestamp')) ? $this->input->get('timestamp') : 0;
     $count = ($this->input->get('count')) ? $this->input->get('count') : 50;
 
-    $current_time = $this->fixed_server_time();
+    $current_time = $this->server_time();
 
     // Compose SQL query
     $query = $this->db->order_by("id", "desc")->select('latitude, longitude, pubTime')->get_where('skene_messages',
