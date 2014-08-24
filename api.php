@@ -10,9 +10,7 @@ class Api extends CI_Controller {
         $json = json_decode(trim(file_get_contents('php://input')));
         if ($json->latitude == ""
             || $json->longitude == ""
-            || $json->text == ""
-            || $json->pubDelay == ""
-            || $json->parent_id == "") {
+            || $json->text == "") {
           echo json_encode(array("error"=>"Cannot add new message"));
           exit;
         }
@@ -46,8 +44,8 @@ class Api extends CI_Controller {
       'latitude'  => $json->latitude,
       'longitude' => $json->longitude,
       'text'      => $json->text,
-      'pubTime'   => $current_time + $json->pubDelay,
-      'parent_id' => $json->parent_id
+      'pubTime'   => $current_time + ($json->pubDelay ? $json->pubDelay : 0),
+      'parent_id' => $json->parent_id ? $json->parent_id : 0
     );
     $this->db->insert('skene_messages', $data);
     // Return the ID of the newly inserted message
